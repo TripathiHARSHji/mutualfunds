@@ -1,0 +1,24 @@
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: search-function-service
+          uri: lb://SEARCH-FUNCTION-SERVICE
+          predicates:
+            - Path=/mutualfunds/search
+          filters:
+            - RewritePath=/mutualfunds/search/(?<query>[^&]*), /${query}
+            - AuthenticationFilter
+        - id: mutual-fund-route
+          uri: lb://SEARCH-FUNCTION-SERVICE
+          predicates:
+            - Path=/mutualfunds/{id}
+          filters:
+            - RewritePath=/mutualfunds/(?<id>.*), /mutualfunds/${id}
+            - RemoveRequestHeader=Cookie
+            - RewriteResponseHeader=X-Response-Header, Bar
+            - AuthenticationFilter
+        - id: identity-service
+          uri: lb://IDENTITY-SERVICE
+          predicates:
+            - Path=/auth/**
